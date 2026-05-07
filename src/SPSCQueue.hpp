@@ -1,59 +1,67 @@
+#include<utility>
 #include<cstddef>
 #pragma once
-template <typename T, size_t N>
+template<typename T,size_t N>
 class SPSCQueue
-{   
+{
     public:
-    SPSCQueue():head_(0), tail_(0)
-    {
-        static_assert((N & (N - 1)) == 0, "N must be a power of two");
-        ptr = new T[N];
-        
-    }
-    inline bool empty()
-    {
-        return (head_ == tail_ );
-    }
-    inline bool full()
-    {
-        return  ((tail_ + 1) % N == head_ );
-    }
-
-    bool push(T&obj)
-    {
-        if(this->full())
+        static_assert((N & (N-1)) == 0);
+        template<typename... Args>
+        SPSCQueue(Args...args):head(0), tail(0)
         {
-            return false;
+            ptr_raw = new std::byte[N * sizeof(T)];
+            ptr = reinterpret_cast<T*>(ptr_raw);
+            for(size_t i=0;i<N;i++)
+            {
+                new(&ptr[i]) T(std::forward<Args>(args)...); 
+            }
+
+        }
+        ~SPSCQueue()
+        {
+            delete [] ptr_raw;
         }
 
-        ptr[tail_] = obj;
-        tail_ = (tail_ + 1) %N;
-        return true;
-
-    }
-
-    bool pop(T&target)
-    {
-        if(this->empty())
+        inline bool full()
         {
-            return false;
+            return (tail + 1) % N == head; 
         }
 
-        target = ptr[head_];
-        head_ = (head_ + 1) % N;
-        
-        return true;
+        inline bool empty()
+        {
+            return head == tail;
+        }
 
-    }
+        bool push(T&obj)
+        {
+            if(full())
+            {
+                return false;
+            }
 
-    ~SPSCQueue()
-    {
-        delete[] ptr;
-    }
+            ptr[tail] = obj;
+            
+            tail = (tail + 1)%N;
+
+            return true;
+
+        }
+
+        bool pop(T&target)
+        {
+            if(empty())
+            {
+                return false;
+            }
+
+            target = ptr[head];
+
+            head = (head + 1)%N;
+            return true;
+        }
 
     private:
-        T*ptr;
-        size_t head_;
-        size_t tail_;
-
+        std::byte* ptr_raw;
+        T* ptr;
+        size_t tail, head;
 };
