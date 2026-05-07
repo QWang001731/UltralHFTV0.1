@@ -1,0 +1,21 @@
+{
+  "configurations": [
+    {
+      "name": "linux-gcc-x64",
+      "includePath": [
+        "${workspaceFolder}/**",
+        "/usr/include",
+        "/usr/include/gtest",
+        "/usr/src/googletest/googletest/include"
+      ],
+      "compilerPath": "/usr/bin/g++",
+      "cStandard": "${default}",
+      "cppStandard": "${default}",
+      "intelliSenseMode": "linux-gcc-x64",
+      "compilerArgs": [
+        ""
+      ]
+    }
+  ],
+  "version": 4
+}

@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y g++ cmake libgtest-dev
+
+      - name: Build and install GoogleTest
+        run: |
+          cmake -S /usr/src/googletest -B /tmp/googletest-build
+          sudo cmake --build /tmp/googletest-build --target install
+
+      - name: Compile tests
+        run: g++ -std=c++17 -Wall -Wextra -pthread tests/test_spscqueue.cc -lgtest -lgtest_main -o run_tests
+
+      - name: Run tests
+        run: ./run_tests
