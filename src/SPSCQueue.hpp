@@ -53,6 +53,7 @@ class SPSCQueue
 
     private:
         T*ptr;
-        size_t head_, tail_;
+        size_t head_;
+        size_t tail_;
 
 };
