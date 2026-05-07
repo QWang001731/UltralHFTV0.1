@@ -70,3 +70,60 @@ TEST(SPSCQueueTest,ConsumerProducerTest)
 
     EXPECT_EQ(vec, res);
 }
+
+// Queue of size N can hold N-1 elements (one slot reserved to distinguish full from empty)
+TEST(SPSCQueueTest, FillToCapacity) {
+    SPSCQueue<int, 8> q;  // holds 7 elements max
+    int val = 1;
+    for (int i = 0; i < 7; i++) {
+        EXPECT_TRUE(q.push(val));
+    }
+    EXPECT_TRUE(q.full());
+    EXPECT_FALSE(q.push(val));  // 8th push must fail
+}
+
+// After filling, popping one slot allows exactly one more push
+TEST(SPSCQueueTest, PushAfterPopWhenFull) {
+    SPSCQueue<int, 8> q;
+    int val = 99;
+    for (int i = 0; i < 7; i++) q.push(val);
+    EXPECT_FALSE(q.push(val));  // full
+
+    int out = 0;
+    q.pop(out);
+    EXPECT_TRUE(q.push(val));   // one slot freed
+    EXPECT_TRUE(q.full());
+}
+
+// Elements must come out in the same order they were pushed (FIFO)
+TEST(SPSCQueueTest, FIFOOrdering) {
+    SPSCQueue<int, 16> q;
+    for (int i = 0; i < 10; i++) q.push(i);
+
+    for (int i = 0; i < 10; i++) {
+        int out = -1;
+        EXPECT_TRUE(q.pop(out));
+        EXPECT_EQ(out, i);
+    }
+}
+
+// Push N-1 items, pop all, then push N-1 more — verifies the ring wraps correctly
+TEST(SPSCQueueTest, WrapAround) {
+    SPSCQueue<int, 8> q;  // capacity 7
+    int val = 0;
+
+    // Fill and drain once
+    for (int i = 0; i < 7; i++) q.push(i);
+    for (int i = 0; i < 7; i++) { int out; q.pop(out); }
+
+    // Fill again across the wrap boundary
+    for (int i = 0; i < 7; i++) {
+        EXPECT_TRUE(q.push(i * 2));
+    }
+    for (int i = 0; i < 7; i++) {
+        int out = -1;
+        EXPECT_TRUE(q.pop(out));
+        EXPECT_EQ(out, i * 2);
+    }
+    EXPECT_TRUE(q.empty());
+}
