@@ -118,7 +118,8 @@ TEST(SPSCQueueTest, WrapAround) {
 
     // Fill again across the wrap boundary
     for (int i = 0; i < 7; i++) {
-        EXPECT_TRUE(q.push(i * 2));
+        int j = i*2;
+        EXPECT_TRUE(q.push(j));
     }
     for (int i = 0; i < 7; i++) {
         int out = -1;
