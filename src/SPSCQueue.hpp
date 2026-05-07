@@ -6,20 +6,14 @@ class SPSCQueue
 {
     public:
         static_assert((N & (N-1)) == 0);
-        template<typename... Args>
-        SPSCQueue(Args...args):head(0), tail(0)
+        SPSCQueue():head(0), tail(0)
         {
-            ptr_raw = new std::byte[N * sizeof(T)];
-            ptr = reinterpret_cast<T*>(ptr_raw);
-            for(size_t i=0;i<N;i++)
-            {
-                new(&ptr[i]) T(std::forward<Args>(args)...); 
-            }
+            ptr = new T[N];
 
         }
         ~SPSCQueue()
         {
-            delete [] ptr_raw;
+            delete [] ptr;
         }
 
         inline bool full()
@@ -61,7 +55,6 @@ class SPSCQueue
         }
 
     private:
-        std::byte* ptr_raw;
         T* ptr;
         size_t tail, head;
 };
