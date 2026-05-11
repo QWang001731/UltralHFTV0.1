@@ -1,19 +1,17 @@
 #include<utility>
 #include<cstddef>
+#include <memory>
 #pragma once
 template<typename T,size_t N>
 class SPSCQueue
 {
     public:
         static_assert((N & (N-1)) == 0);
-        SPSCQueue():head(0), tail(0)
+        SPSCQueue():head(0), tail(0),storage(new T[N])
         {
-            ptr = new T[N];
-
         }
         ~SPSCQueue()
         {
-            delete [] ptr;
         }
 
         inline bool full()
@@ -33,7 +31,7 @@ class SPSCQueue
                 return false;
             }
 
-            ptr[tail] = obj;
+            storage.get()[tail] = obj;
             
             tail = (tail + 1)%N;
 
@@ -48,13 +46,13 @@ class SPSCQueue
                 return false;
             }
 
-            target = ptr[head];
+            target = storage.get()[head];
 
             head = (head + 1)%N;
             return true;
         }
 
     private:
-        T* ptr;
+        std::unique_ptr<T[]> storage;
         size_t tail, head;
 };
